@@ -1,4 +1,4 @@
-## goCron: A Golang Job Scheduling Package.
+## ConcurrentCron: A Golang Job Scheduling Package.
 
 [![GgoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](http://godoc.org/github.com/whutwxn/ConcurrencyCron)
 
