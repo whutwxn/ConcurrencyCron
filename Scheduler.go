@@ -15,6 +15,7 @@ import (
 type Scheduler interface {
 	Every(interval uint64) TasksPool
 	Start(ctx context.Context)
+	Stop(cancel context.CancelFunc)
 }
 
 type scheduler struct {
@@ -63,6 +64,11 @@ func (s *scheduler) Start(ctx context.Context) {
 			}
 		}
 	}()
+}
+
+func (s *scheduler) Stop(cancel context.CancelFunc) {
+	s.tickets.Close()
+	cancel()
 }
 
 func (s *scheduler) startRun() {

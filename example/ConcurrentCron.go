@@ -32,7 +32,7 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	scheduler.Start(ctx)
 	ch := make(chan bool)
-	<-ch           //test
-	defer cancel() //you can shutdown the tasks by this function gratefully
+	<-ch                   //test
+	scheduler.Stop(cancel) //stop the tasks
 
 }

@@ -22,6 +22,8 @@ type TicketsPool interface {
 	Total() uint32
 	//remain tickets
 	Remain() uint32
+	//close pool
+	Close()
 }
 
 type tickets struct {
@@ -87,4 +89,9 @@ func (tp *tickets) Total() uint32 {
 
 func (tp *tickets) Remain() uint32 {
 	return uint32(len(tp.ticket))
+}
+
+func (tp *tickets) Close() {
+	tp.active = false
+	close(tp.ticket)
 }
