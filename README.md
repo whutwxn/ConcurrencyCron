@@ -1,6 +1,6 @@
 ## ConcurrentCron: A Golang Job Scheduling Package.
 
-[![GgoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](http://godoc.org/github.com/whutwxn/ConcurrencyCron)
+[![GgoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](https://godoc.org/github.com/whutwxn/ConcurrencyCron)
 
 ConcurrentCron is a task scheduler that supports high concurrency at the same time which lets you run Go functions periodically at pre-determined interval using a simple, human-friendly syntax.
 
