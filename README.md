@@ -16,20 +16,19 @@ func test(num int) {
 
 func main() {
 	scheduler, err := ConcurrencyCron.NewScheduler(200) //200 is the number of tasks that can be run in parallel
-	if err != nil {
-		fmt.Println(err)
-	}
-	for i := 0; i < 200; i++ {
-		scheduler.Every(1).Seconds().Do(test, i)
-		scheduler.Every(1).Minutes().Do(test, 1000+i)
-		scheduler.Every(1).Hours().Do(test, 10000+i)  you can refer to [jasonlvhit/gocron](https://github.com/jasonlvhit/gocron)
-	}
-	ctx, cancel := context.WithCancel(context.Background())
-	scheduler.Start(ctx)
-	ch := make(chan bool)
-	<-ch //test
-	defer cancel() //you can shutdown the tasks by this function gratefully
-
+    if err != nil {
+    	fmt.Println(err)
+    }
+    for i := 0; i < 200; i++ {
+    	scheduler.Every(1).Seconds().Do(test, i)
+    	scheduler.Every(1).Minutes().Do(test, 1000+i)
+    	scheduler.Every(1).Hours().Do(test, 10000+i)
+    }
+    ctx, cancel := context.WithCancel(context.Background())
+    scheduler.Start(ctx)
+    ch := make(chan bool)
+    <-ch                   //test
+    scheduler.Stop(cancel) //stop the tasks
 }
 ```
 This article refers to some of [jasonlvhit/gocron](https://github.com/jasonlvhit/gocron)'s ideas and things, the specific timing tasks are the same as gocron, you can refer to his project
