@@ -15,41 +15,42 @@ import (
  *@date    19-8-2 上午11:23
  */
 type TasksPool interface {
-	Seconds() *task
-	Minutes() *task
-	Hours() *task
-	Days() *task
-	Weekdays() *task
-	Monday() *task
-	Tuesday() *task
-	Wednesday() *task
-	Thursday() *task
-	Friday() *task
-	Saturday() *task
-	Sunday() *task
-	JudgeRun(tm time.Time) bool
-	Run(ticket TicketsPool, tm time.Time)
-	GetNext() time.Time
-	Do(taskFunc interface{}, params ...interface{}) string
+	Seconds() *task                                        //Run every few seconds
+	Minutes() *task                                        //Run every few minutes
+	Hours() *task                                          //Run every few hours
+	Days() *task                                           //Run every few days
+	Weekdays() *task                                       //Run every few weeks
+	Monday() *task                                         //Run every few weeks on Monday
+	Tuesday() *task                                        //Run every few weeks on Tuesday
+	Wednesday() *task                                      //Run every few weeks on Wednesday
+	Thursday() *task                                       //Run every few weeks on Thursday
+	Friday() *task                                         //Run every few weeks on Friday
+	Saturday() *task                                       //Run every few weeks on Saturday
+	Sunday() *task                                         //Run every few weeks on Sunday
+	JudgeRun(tm time.Time) bool                            //Determine if it is going to run
+	Run(ticket TicketsPool, tm time.Time)                  //Run and judge the next run time
+	GetNext() time.Time                                    //Get nest run time
+	Do(taskFunc interface{}, params ...interface{}) string //Add a run function
 }
 
 type task struct {
-	uuid      string //
-	interval  uint64 //
-	atTime    time.Duration
-	latest    time.Time
-	next      time.Time
-	startDay  time.Weekday
-	funcName  string
-	funcVal   interface{}
-	funcParam []interface{}
-	unit      string
+	uuid      string        //uuid for each task
+	interval  uint64        //interval foreach task
+	atTime    time.Duration //The time of the task starts running e.g: 8:05
+	latest    time.Time     //The last run time of the task
+	next      time.Time     //The next run time of the task
+	startDay  time.Weekday  //The weeks of the task starts running e.g: Monday
+	funcName  string        //The name of the function that needs to be run
+	funcVal   interface{}   //the function that needs to be run
+	funcParam []interface{} //Function parameters
+	unit      string        //The unit of running interval
 }
 
+//create a task
 func NewTask(interval uint64) TasksPool {
 	jobId, err := uuid.NewV4()
 	if err != nil {
-		//
+		fmt.Println("get uuid error")
 	}
 	id := jobId.String()
 	return &task{
@@ -90,7 +91,7 @@ func (t *task) periodDuration() time.Duration {
 	case "weeks":
 		return time.Duration(interval * time.Hour * 24 * 7)
 	}
-	panic("unspecified job period") // unspecified period
+	panic("unspecified job period")
 }
 
 func (t *task) getNextRun() {
@@ -118,7 +119,7 @@ func (t *task) getNextRun() {
 		t.next = t.next.Add(t.atTime)
 
 	}
-	//
+
 	for t.next.Before(now) || t.next.Before(t.latest) {
 		t.next = t.next.Add(t.periodDuration())
 	}
@@ -129,10 +130,6 @@ func (t *task) GetNext() time.Time {
 }
 
 func (t *task) JudgeRun(tm time.Time) bool {
-	// todo:may have problems
-	//if math.Abs(float64(time.Now().UnixNano()-t.next.UnixNano())) < 0.1*1e6 {
-	//	return true
-	//}
 	return tm.Unix() >= t.next.Unix()
 }
 
@@ -174,63 +171,50 @@ func (t *task) Do(taskFunc interface{}, params ...interface{}) string {
 	return t.uuid
 }
 
-//
 func (t *task) Seconds() *task {
 	return t.setUnit("seconds")
 }
 
-//
 func (t *task) Minutes() *task {
 	return t.setUnit("minutes")
 }
 
-//
 func (t *task) Hours() *task {
 	return t.setUnit("hours")
 }
 
-//
 func (t *task) Days() *task {
 	return t.setUnit("days")
 }
 
-//
 func (t *task) Weekdays() *task {
 	return t.setUnit("weeks")
 }
 
-//
-//
 func (t *task) Monday() (job *task) {
 	return t.weekday(time.Monday)
 }
 
-//
 func (t *task) Tuesday() *task {
 	return t.weekday(time.Tuesday)
 }
 
-//
 func (t *task) Wednesday() *task {
 	return t.weekday(time.Wednesday)
 }
 
-//
 func (t *task) Thursday() *task {
 	return t.weekday(time.Thursday)
 }
 
-//
 func (t *task) Friday() *task {
 	return t.weekday(time.Friday)
 }
 
-//
 func (t *task) Saturday() *task {
 	return t.weekday(time.Saturday)
 }
 
-//
 func (t *task) Sunday() *task {
 	return t.weekday(time.Sunday)
 }

@@ -10,26 +10,27 @@ import "errors"
  */
 var MAX_POOL_CAPITION uint32 = 10000
 
-//控制并发数量的票池
+//Control the number of concurrent ticket pools
 type TicketsPool interface {
-	//拿走一张票
+	//take a ticket
 	Take()
-	//还回一张票
+	//return a ticket
 	Return()
-	//票池是否被激活
+	//get the ticket pools' status
 	Active() bool
-	//总票数
+	//total tickets
 	Total() uint32
-	//剩余票数
+	//remain tickets
 	Remain() uint32
 }
 
 type tickets struct {
-	total  uint32        //总票数
-	ticket chan struct{} //票
-	active bool          //是否激活
+	total  uint32        //total tickets
+	ticket chan struct{} //ticket
+	active bool          //Whether the ticket pool has been activated
 }
 
+//Set the maximum number of concurrent
 func SetMaxConcurrent(max uint32) (err error) {
 	if max == 0 {
 		return errors.New("max concurrent must >0")
@@ -38,6 +39,7 @@ func SetMaxConcurrent(max uint32) (err error) {
 	return
 }
 
+//create a tickets pool
 func NewTicketsPool(total uint32) (TicketsPool, error) {
 	tp := tickets{}
 	if err := tp.init(total); err != nil {
