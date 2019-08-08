@@ -16,6 +16,7 @@ type Scheduler interface {
 	Every(interval uint64) TasksPool
 	Start(ctx context.Context)
 	Stop(cancel context.CancelFunc)
+	RemoveByUuid(uuid string)
 }
 
 type scheduler struct {
@@ -69,6 +70,25 @@ func (s *scheduler) Start(ctx context.Context) {
 func (s *scheduler) Stop(cancel context.CancelFunc) {
 	s.tickets.Close()
 	cancel()
+}
+
+func (s *scheduler) RemoveByUuid(uuid string) {
+	i := 0
+	found := false
+	for ; i < s.size; i++ {
+		if s.tasks[i].GetUuid() == uuid {
+			found = true
+			break
+		}
+	}
+	if !found {
+		return
+	}
+	for j := i + 1; j < s.size; j++ {
+		s.tasks[i] = s.tasks[j]
+		i++
+	}
+	s.size = s.size - 1
 }
 
 func (s *scheduler) startRun() {

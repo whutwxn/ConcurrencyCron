@@ -31,6 +31,7 @@ type TasksPool interface {
 	Run(ticket TicketsPool, tm time.Time)                  //Run and judge the next run time
 	GetNext() time.Time                                    //Get nest run time
 	Do(taskFunc interface{}, params ...interface{}) string //Add a run function
+	GetUuid() string                                       //get uuid
 }
 
 type task struct {
@@ -156,7 +157,9 @@ func (t *task) Run(ticket TicketsPool, tm time.Time) {
 		params[i] = reflect.ValueOf(param)
 	}
 	t.latest = tm
+	t.getNextRun()
 	taskFunc.Call(params)
+
 }
 
 func (t *task) Do(taskFunc interface{}, params ...interface{}) string {
@@ -217,4 +220,8 @@ func (t *task) Saturday() *task {
 
 func (t *task) Sunday() *task {
 	return t.weekday(time.Sunday)
+}
+
+func (t *task) GetUuid() string {
+	return t.uuid
 }
