@@ -24,11 +24,12 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-	for i := 0; i < 200; i++ {
-		scheduler.Every(1).Seconds().Do(test, i)
-		scheduler.Every(1).Minutes().Do(test, 1000+i)
-		scheduler.Every(1).Hours().Do(test, 10000+i)
-	}
+	//for i := 0; i < 200; i++ {
+	scheduler.Every(1).Seconds().Do(test, 1)
+	scheduler.Every(1).Minutes().Do(test, 1000+1)
+	scheduler.Every(1).Hours().Do(test, 10000+1)
+	//}
+	fmt.Println("started")
 	ctx, cancel := context.WithCancel(context.Background())
 	scheduler.Start(ctx)
 	ch := make(chan bool)

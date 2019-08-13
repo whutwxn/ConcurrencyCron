@@ -96,6 +96,7 @@ func (t *task) periodDuration() time.Duration {
 }
 
 func (t *task) getNextRun() {
+	//fmt.Println(t.uuid, "last time:", t.latest)
 	now := time.Now()
 	if t.latest == time.Unix(0, 0) {
 		t.latest = now
@@ -124,6 +125,7 @@ func (t *task) getNextRun() {
 	for t.next.Before(now) || t.next.Before(t.latest) {
 		t.next = t.next.Add(t.periodDuration())
 	}
+	fmt.Println(t.uuid, "now:", now, "last time:", t.latest, "next time:", t.next)
 }
 
 func (t *task) GetNext() time.Time {
