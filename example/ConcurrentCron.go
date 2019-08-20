@@ -33,7 +33,8 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	scheduler.Start(ctx)
 	ch := make(chan bool)
-	<-ch                   //test
-	scheduler.Stop(cancel) //stop the tasks
+	<-ch             //test
+	scheduler.Stop() //stop the tasks
+	cancel()
 
 }

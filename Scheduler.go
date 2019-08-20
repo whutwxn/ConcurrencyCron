@@ -16,7 +16,7 @@ import (
 type Scheduler interface {
 	Every(interval uint64) TasksPool
 	Start(ctx context.Context)
-	Stop(cancel context.CancelFunc)
+	Stop()
 	RemoveByUuid(uuid string)
 	GetCurrentTicketsNum() uint32
 	GetTaskNum() int
@@ -82,9 +82,8 @@ func (s *scheduler) Start(ctx context.Context) {
 	}()
 }
 
-func (s *scheduler) Stop(cancel context.CancelFunc) {
+func (s *scheduler) Stop() {
 	s.tickets.Close()
-	cancel()
 }
 
 func (s *scheduler) RemoveByUuid(uuid string) {
