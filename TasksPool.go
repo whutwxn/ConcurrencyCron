@@ -125,7 +125,7 @@ func (t *task) getNextRun() {
 	for t.next.Before(now) || t.next.Before(t.latest) {
 		t.next = t.next.Add(t.periodDuration())
 	}
-	fmt.Println(t.uuid, "now:", now, "last time:", t.latest, "next time:", t.next)
+	//fmt.Println(t.uuid, "now:", now, "last time:", t.latest, "next time:", t.next)
 }
 
 func (t *task) GetNext() time.Time {
