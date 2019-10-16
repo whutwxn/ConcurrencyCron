@@ -28,6 +28,7 @@ func main() {
 	scheduler.Every(1).Seconds().Do(test, 1)
 	scheduler.Every(1).Minutes().Do(test, 1000+1)
 	scheduler.Every(1).Hours().Do(test, 10000+1)
+	scheduler.Once().At("8:15").Do(test, 10000+2)
 	//}
 	fmt.Println("started")
 	ctx, cancel := context.WithCancel(context.Background())

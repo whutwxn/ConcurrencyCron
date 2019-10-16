@@ -15,6 +15,7 @@ import (
 
 type Scheduler interface {
 	Every(interval uint64) TasksPool
+	Once() TasksPool
 	Start(ctx context.Context)
 	Stop()
 	RemoveByUuid(uuid string)
@@ -67,6 +68,16 @@ func (s *scheduler) Every(interval uint64) TasksPool {
 	return task
 }
 
+func (s *scheduler) Once() TasksPool {
+	task := NewOnceTask()
+	s.mutex.Lock()
+	//s.tasks[s.size] = task
+	s.tasks = append(s.tasks, task)
+	s.size++
+	defer s.mutex.Unlock()
+	return task
+}
+
 func (s *scheduler) Start(ctx context.Context) {
 	ticker := time.NewTicker(1000 * time.Millisecond)
 	go func() {
@@ -88,24 +99,27 @@ func (s *scheduler) Stop() {
 
 func (s *scheduler) RemoveByUuid(uuid string) {
 	i := 0
-	//found := false
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	for ; i < s.size; i++ {
 		if s.tasks[i].GetUuid() == uuid {
 			s.tasks = append(s.tasks[:i], s.tasks[i+1:]...)
-			//found = true
 			break
 		}
 	}
-	//if !found {
-	//	return
-	//}
-	//for j := i + 1; j < s.size; j++ {
-	//	s.tasks[i] = s.tasks[j]
-	//	i++
-	//}
 	s.size = s.size - 1
+}
+
+func (s *scheduler) removeOnceTask() {
+	index := 0
+	for key, val := range s.tasks {
+		if val.Done() {
+			s.tasks[key] = s.tasks[index]
+			s.tasks[index] = val
+			index++
+		}
+	}
+	s.tasks = s.tasks[index:]
 }
 
 func (s *scheduler) startRun() {
@@ -113,6 +127,7 @@ func (s *scheduler) startRun() {
 	tm := time.Now()
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
+	s.removeOnceTask()
 	for i := 0; i < s.size; i++ {
 		if s.tasks[i].JudgeRun(tm) {
 			s.tickets.Take()

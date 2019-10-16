@@ -1,10 +1,13 @@
 package ConcurrencyCron
 
 import (
+	"errors"
 	"fmt"
 	uuid "github.com/satori/go.uuid"
 	"reflect"
 	"runtime"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -15,6 +18,7 @@ import (
  *@date    19-8-2 上午11:23
  */
 type TasksPool interface {
+	At(tm string) *task                                    //Run at some times
 	Seconds() *task                                        //Run every few seconds
 	Minutes() *task                                        //Run every few minutes
 	Hours() *task                                          //Run every few hours
@@ -32,6 +36,7 @@ type TasksPool interface {
 	GetNext() time.Time                                    //Get nest run time
 	Do(taskFunc interface{}, params ...interface{}) string //Add a run function
 	GetUuid() string                                       //get uuid
+	Done() bool                                            //get once job done
 }
 
 type task struct {
@@ -45,6 +50,8 @@ type task struct {
 	funcVal   interface{}   //the function that needs to be run
 	funcParam []interface{} //Function parameters
 	unit      string        //The unit of running interval
+	once      bool          //run once
+	done      bool          //once job done
 }
 
 //create a task
@@ -65,6 +72,30 @@ func NewTask(interval uint64) TasksPool {
 		nil,
 		nil,
 		"",
+		false,
+		false,
+	}
+}
+
+func NewOnceTask() TasksPool {
+	jobId, err := uuid.NewV4()
+	if err != nil {
+		fmt.Println("get uuid error")
+	}
+	id := jobId.String()
+	return &task{
+		id,
+		1,
+		0,
+		time.Unix(0, 0),
+		time.Unix(0, 0),
+		time.Sunday,
+		"",
+		nil,
+		nil,
+		"once",
+		true,
+		false,
 	}
 }
 
@@ -91,12 +122,14 @@ func (t *task) periodDuration() time.Duration {
 		return time.Duration(interval * time.Hour * 24)
 	case "weeks":
 		return time.Duration(interval * time.Hour * 24 * 7)
+	case "once":
+		return time.Duration(interval * time.Hour * 24)
 	}
 	panic("unspecified job period")
 }
 
 func (t *task) getNextRun() {
-	//fmt.Println(t.uuid, "last time:", t.latest)
+
 	now := time.Now()
 	if t.latest == time.Unix(0, 0) {
 		t.latest = now
@@ -119,13 +152,22 @@ func (t *task) getNextRun() {
 			t.next = t.next.Add(time.Duration(dayDiff) * 24 * time.Hour)
 		}
 		t.next = t.next.Add(t.atTime)
+	case "once":
+		if !t.done {
+			t.next = time.Date(t.latest.Year(), t.latest.Month(), t.latest.Day(), 0, 0, 0, 0, time.Local)
+			t.next = t.next.Add(t.atTime)
+			for t.next.Before(now) || t.next.Before(t.latest) {
+				t.next = t.next.Add(t.periodDuration())
+			}
+		}
 
 	}
-
-	for t.next.Before(now) || t.next.Before(t.latest) {
-		t.next = t.next.Add(t.periodDuration())
+	if !t.once {
+		for t.next.Before(now) || t.next.Before(t.latest) {
+			t.next = t.next.Add(t.periodDuration())
+		}
 	}
-	//fmt.Println(t.uuid, "now:", now, "last time:", t.latest, "next time:", t.next)
+
 }
 
 func (t *task) GetNext() time.Time {
@@ -159,6 +201,9 @@ func (t *task) Run(ticket TicketsPool, tm time.Time) {
 		params[i] = reflect.ValueOf(param)
 	}
 	t.latest = tm
+	if t.once {
+		t.done = true
+	}
 	t.getNextRun()
 	taskFunc.Call(params)
 
@@ -226,4 +271,40 @@ func (t *task) Sunday() *task {
 
 func (t *task) GetUuid() string {
 	return t.uuid
+}
+
+func formatTime(t string) (hour, min int, err error) {
+	var er = errors.New("time format error")
+	ts := strings.Split(t, ":")
+	if len(ts) != 2 {
+		err = er
+		return
+	}
+
+	if hour, err = strconv.Atoi(ts[0]); err != nil {
+		return
+	}
+	if min, err = strconv.Atoi(ts[1]); err != nil {
+		return
+	}
+
+	if hour < 0 || hour > 23 || min < 0 || min > 59 {
+		err = er
+		return
+	}
+	return hour, min, nil
+}
+
+func (t *task) At(tm string) *task {
+	hour, min, err := formatTime(tm)
+	if err != nil {
+		panic(err)
+	}
+	// save atTime start as duration from midnight
+	t.atTime = time.Duration(hour)*time.Hour + time.Duration(min)*time.Minute
+	return t
+}
+
+func (t *task) Done() bool {
+	return t.done
 }
