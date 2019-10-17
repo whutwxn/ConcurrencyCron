@@ -172,7 +172,7 @@ func (t *task) GetNext() time.Time {
 }
 
 func (t *task) JudgeRun(tm time.Time) bool {
-	return tm.Unix() >= t.next.Unix()
+	return tm.Unix() == t.next.Unix()
 }
 
 func (t *task) Run(ticket TicketsPool, tm time.Time) {
