@@ -156,9 +156,6 @@ func (t *task) getNextRun() {
 		if !t.done {
 			t.next = time.Date(t.latest.Year(), t.latest.Month(), t.latest.Day(), 0, 0, 0, 0, time.Local)
 			t.next = t.next.Add(t.atTime)
-			for t.next.Before(now) || t.next.Before(t.latest) {
-				t.next = t.next.Add(t.periodDuration())
-			}
 		}
 
 	}
