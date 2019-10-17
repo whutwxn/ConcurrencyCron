@@ -120,6 +120,7 @@ func (s *scheduler) removeOnceTask() {
 		}
 	}
 	s.tasks = s.tasks[index:]
+	s.size -= index
 }
 
 func (s *scheduler) startRun() {
