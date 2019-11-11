@@ -130,10 +130,8 @@ func (s *scheduler) startRun() {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 	s.removeOnceTask()
-	fmt.Println("task size:", s.size)
 	for i := 0; i < s.size; i++ {
 		if s.tasks[i].JudgeRun(tm) {
-			fmt.Println("id:"+s.tasks[i].GetUuid(), "time:", time.Now())
 			s.tickets.Take()
 			go s.tasks[i].Run(s.tickets, tm)
 		}
