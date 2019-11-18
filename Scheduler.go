@@ -104,10 +104,13 @@ func (s *scheduler) RemoveByUuid(uuid string) {
 	for ; i < s.size; i++ {
 		if s.tasks[i].GetUuid() == uuid {
 			s.tasks = append(s.tasks[:i], s.tasks[i+1:]...)
+			if s.size > 0 {
+				s.size = s.size - 1
+			}
 			break
 		}
 	}
-	s.size = s.size - 1
+
 }
 
 func (s *scheduler) removeOnceTask() {
