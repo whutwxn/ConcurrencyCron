@@ -31,7 +31,8 @@ func test(num string) {
 
 func init() {
 	var err error
-	scheduler, err = ConcurrencyCron.NewScheduler(200, os.Stdout)
+	ConcurrencyCron.DefaultWriter = os.Stdout
+	scheduler, err = ConcurrencyCron.NewScheduler(200)
 	if err != nil {
 		fmt.Println(err)
 	}
