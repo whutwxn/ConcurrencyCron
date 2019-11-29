@@ -2,6 +2,8 @@ package ConcurrencyCron
 
 import (
 	"context"
+	"fmt"
+	"io"
 	"sync"
 	"time"
 )
@@ -24,6 +26,7 @@ type Scheduler interface {
 }
 
 type scheduler struct {
+	writer  io.Writer
 	mutex   sync.Mutex
 	tickets TicketsPool
 	tasks   []TasksPool
@@ -38,12 +41,12 @@ func (s *scheduler) GetCurrentTicketsNum() uint32 {
 	return s.tickets.Remain()
 }
 
-func NewScheduler(threads uint32) (Scheduler, error) {
+func NewScheduler(threads uint32, writer io.Writer) (Scheduler, error) {
 	tickets, err := NewTicketsPool(threads)
 	if err != nil {
 		return nil, err
 	}
-	return &scheduler{tickets: tickets, tasks: []TasksPool{}, size: 0}, nil
+	return &scheduler{writer: writer, tickets: tickets, tasks: []TasksPool{}, size: 0}, nil
 }
 
 func (s *scheduler) Len() int {
@@ -59,7 +62,7 @@ func (s *scheduler) Less(i, j int) bool {
 }
 
 func (s *scheduler) Every(interval uint64) TasksPool {
-	task := NewTask(interval)
+	task := NewTask(interval, s.writer)
 	s.mutex.Lock()
 	//s.tasks[s.size] = task
 	s.tasks = append(s.tasks, task)
@@ -69,7 +72,7 @@ func (s *scheduler) Every(interval uint64) TasksPool {
 }
 
 func (s *scheduler) Once() TasksPool {
-	task := NewOnceTask()
+	task := NewOnceTask(s.writer)
 	s.mutex.Lock()
 	//s.tasks[s.size] = task
 	s.tasks = append(s.tasks, task)
@@ -107,6 +110,7 @@ func (s *scheduler) RemoveByUuid(uuid string) {
 			if s.size > 0 {
 				s.size = s.size - 1
 			}
+			fmt.Fprintln(s.writer, "deleted cron, uuid:", uuid, "current num:", s.size, "slice:", len(s.tasks))
 			break
 		}
 	}
@@ -124,6 +128,7 @@ func (s *scheduler) removeOnceTask() {
 	}
 	s.tasks = s.tasks[index:]
 	s.size -= index
+	fmt.Fprintln(s.writer, "deleted crons, uuids:", index, "current num:", s.size, "slice:", len(s.tasks))
 }
 
 func (s *scheduler) startRun() {

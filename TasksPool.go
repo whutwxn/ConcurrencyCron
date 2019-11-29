@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	uuid "github.com/satori/go.uuid"
+	"io"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -52,13 +53,14 @@ type task struct {
 	unit      string        //The unit of running interval
 	once      bool          //run once
 	done      bool          //once job done
+	writer    io.Writer
 }
 
 //create a task
-func NewTask(interval uint64) TasksPool {
+func NewTask(interval uint64, writer io.Writer) TasksPool {
 	jobId, err := uuid.NewV4()
 	if err != nil {
-		fmt.Println("get uuid error")
+		_, _ = fmt.Fprintln(writer, "get uuid error", err)
 	}
 	id := jobId.String()
 	return &task{
@@ -74,13 +76,14 @@ func NewTask(interval uint64) TasksPool {
 		"",
 		false,
 		false,
+		writer,
 	}
 }
 
-func NewOnceTask() TasksPool {
+func NewOnceTask(writer io.Writer) TasksPool {
 	jobId, err := uuid.NewV4()
 	if err != nil {
-		fmt.Println("get uuid error")
+		_, _ = fmt.Fprintln(writer, "get uuid error", err)
 	}
 	id := jobId.String()
 	return &task{
@@ -96,6 +99,7 @@ func NewOnceTask() TasksPool {
 		"once",
 		true,
 		false,
+		writer,
 	}
 }
 
@@ -191,7 +195,7 @@ func (t *task) Run(ticket TicketsPool, tm time.Time) {
 	}()
 	taskFunc := reflect.ValueOf(t.funcVal)
 	if len(t.funcParam) != taskFunc.Type().NumIn() {
-		fmt.Printf("param number error:need %d params given %d params", taskFunc.Type().NumIn(), len(t.funcParam))
+		fmt.Fprintf(t.writer, "param number error:need %d params given %d params", taskFunc.Type().NumIn(), len(t.funcParam))
 	}
 	params := make([]reflect.Value, len(t.funcParam))
 	for i, param := range t.funcParam {
@@ -203,7 +207,6 @@ func (t *task) Run(ticket TicketsPool, tm time.Time) {
 	}
 	t.getNextRun()
 	taskFunc.Call(params)
-
 }
 
 func (t *task) Do(taskFunc interface{}, params ...interface{}) string {
