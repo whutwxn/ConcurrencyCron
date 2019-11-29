@@ -128,7 +128,9 @@ func (s *scheduler) removeOnceTask() {
 	}
 	s.tasks = s.tasks[index:]
 	s.size -= index
-	fmt.Fprintln(s.writer, "deleted crons, uuids:", index, "current num:", s.size, "slice:", len(s.tasks))
+	if index != 0 {
+		fmt.Fprintln(s.writer, "deleted crons, uuids:", index, "current num:", s.size, "slice:", len(s.tasks))
+	}
 }
 
 func (s *scheduler) startRun() {
