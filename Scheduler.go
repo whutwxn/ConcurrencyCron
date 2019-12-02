@@ -71,6 +71,7 @@ func (s *scheduler) Every(interval uint64) TasksPool {
 	//s.tasks[s.size] = task
 	s.tasks = append(s.tasks, task)
 	s.size++
+	fmt.Fprintln(DefaultWriter, time.Now(), ":created cron, uuid:", task.GetUuid(), "current num:", s.size, "slice:", len(s.tasks))
 	defer s.mutex.Unlock()
 	return task
 }
@@ -81,6 +82,7 @@ func (s *scheduler) Once() TasksPool {
 	//s.tasks[s.size] = task
 	s.tasks = append(s.tasks, task)
 	s.size++
+	fmt.Fprintln(DefaultWriter, time.Now(), ":created cron, uuid:", task.GetUuid(), "current num:", s.size, "slice:", len(s.tasks))
 	defer s.mutex.Unlock()
 	return task
 }

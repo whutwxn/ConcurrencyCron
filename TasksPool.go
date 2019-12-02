@@ -219,7 +219,7 @@ func (t *task) Do(taskFunc interface{}, params ...interface{}) string {
 	t.funcVal = taskFunc
 	t.funcParam = params
 	t.getNextRun()
-	fmt.Fprintln(t.writer, time.Now(), "created cron,func:", t.GetFunInfo())
+	fmt.Fprintln(t.writer, time.Now(), ":created cron,func:", t.GetFunInfo())
 	return t.uuid
 }
 
