@@ -72,6 +72,10 @@ func main() {
 		uuid := c.Param("uuid")
 		scheduler.RemoveByUuid(uuid)
 	})
+	r.GET("/list", func(c *gin.Context) {
+		res := scheduler.ListTasks()
+		c.JSON(200, res)
+	})
 	r.Run(":12315")
 	ch := make(chan bool)
 	<-ch //test
