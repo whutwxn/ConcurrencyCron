@@ -38,6 +38,7 @@ type TasksPool interface {
 	Do(taskFunc interface{}, params ...interface{}) string //Add a run function
 	GetUuid() string                                       //get uuid
 	Done() bool                                            //get once job done
+	GetFunInfo() string
 }
 
 type task struct {
@@ -307,4 +308,8 @@ func (t *task) At(tm string) *task {
 
 func (t *task) Done() bool {
 	return t.done
+}
+
+func (t *task) GetFunInfo() string {
+	return fmt.Sprintf("%s(%v)", t.funcName, t.funcParam)
 }

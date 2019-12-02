@@ -17,6 +17,7 @@ import (
  */
 
 var DefaultWriter io.Writer = os.Stdout
+var DebugMode = false
 
 type Scheduler interface {
 	Every(interval uint64) TasksPool
@@ -26,6 +27,7 @@ type Scheduler interface {
 	RemoveByUuid(uuid string)
 	GetCurrentTicketsNum() uint32
 	GetTaskNum() int
+	ListTasks() interface{}
 }
 
 type scheduler struct {
@@ -112,7 +114,8 @@ func (s *scheduler) RemoveByUuid(uuid string) {
 			if s.size > 0 {
 				s.size = s.size - 1
 			}
-			fmt.Fprintln(DefaultWriter, "deleted cron, uuid:", uuid, "current num:", s.size, "slice:", len(s.tasks))
+			fmt.Fprintln(DefaultWriter, time.Now(), ":deleted cron func:", s.tasks[i].GetFunInfo())
+			fmt.Fprintln(DefaultWriter, time.Now(), ":deleted cron, uuid:", uuid, "current num:", s.size, "slice:", len(s.tasks))
 			break
 		}
 	}
@@ -122,7 +125,8 @@ func (s *scheduler) RemoveByUuid(uuid string) {
 func (s *scheduler) removeOnceTask() {
 	index := 0
 	for key, val := range s.tasks {
-		if val.Done() {
+		if s.tasks[key].GetNext().Unix() < (time.Now().Unix()-60) || val.Done() {
+			fmt.Fprintln(DefaultWriter, time.Now(), ":deleted cron func:", val.GetFunInfo())
 			s.tasks[key] = s.tasks[index]
 			s.tasks[index] = val
 			index++
@@ -131,12 +135,15 @@ func (s *scheduler) removeOnceTask() {
 	s.tasks = s.tasks[index:]
 	s.size -= index
 	if index != 0 {
-		fmt.Fprintln(DefaultWriter, "deleted crons, uuids:", index, "current num:", s.size, "slice:", len(s.tasks))
+		fmt.Fprintln(DefaultWriter, time.Now(), ":deleted crons, uuids:", index, "current num:", s.size, "slice:", len(s.tasks))
 	}
 }
 
 func (s *scheduler) startRun() {
 	//sort.Sort(s)
+	if DebugMode {
+		fmt.Fprintln(DefaultWriter, time.Now(), "current cron:", len(s.tasks))
+	}
 	tm := time.Now()
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
@@ -147,4 +154,15 @@ func (s *scheduler) startRun() {
 			go s.tasks[i].Run(s.tickets, tm)
 		}
 	}
+}
+
+func (s *scheduler) ListTasks() interface{} {
+	s.mutex.Lock()
+	defer s.mutex.Unlock()
+	var task []interface{}
+	for i := 0; i < s.size; i++ {
+		task = append(task, s.tasks[i].GetFunInfo())
+		fmt.Fprintln(DefaultWriter, time.Now(), "current task:", s.tasks[i].GetFunInfo())
+	}
+	return task
 }
