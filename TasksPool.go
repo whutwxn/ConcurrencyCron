@@ -38,6 +38,7 @@ type TasksPool interface {
 	Do(taskFunc interface{}, params ...interface{}) string //Add a run function
 	GetUuid() string                                       //get uuid
 	Done() bool                                            //get once job done
+	Once() bool
 	GetFunInfo() string
 }
 
@@ -309,6 +310,10 @@ func (t *task) At(tm string) *task {
 
 func (t *task) Done() bool {
 	return t.done
+}
+
+func (t *task) Once() bool {
+	return t.once
 }
 
 func (t *task) GetFunInfo() string {

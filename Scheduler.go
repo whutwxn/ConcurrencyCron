@@ -127,7 +127,7 @@ func (s *scheduler) RemoveByUuid(uuid string) {
 func (s *scheduler) removeOnceTask() {
 	index := 0
 	for key, val := range s.tasks {
-		if s.tasks[key].GetNext().Unix() < (time.Now().Unix()-60) || val.Done() {
+		if s.tasks[key].Once() && (s.tasks[key].GetNext().Unix() < (time.Now().Unix()-60) || val.Done()) {
 			fmt.Fprintln(DefaultWriter, time.Now(), ":deleted cron func:", val.GetFunInfo())
 			s.tasks[key] = s.tasks[index]
 			s.tasks[index] = val
