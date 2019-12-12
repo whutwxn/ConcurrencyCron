@@ -112,12 +112,12 @@ func (s *scheduler) RemoveByUuid(uuid string) {
 	defer s.mutex.Unlock()
 	for ; i < s.size; i++ {
 		if s.tasks[i].GetUuid() == uuid {
+			fmt.Fprintln(DefaultWriter, time.Now(), ":deleted cron func:", s.tasks[i].GetFunInfo())
+			fmt.Fprintln(DefaultWriter, time.Now(), ":deleted cron, uuid:", uuid, "current num:", s.size, "slice:", len(s.tasks))
 			s.tasks = append(s.tasks[:i], s.tasks[i+1:]...)
 			if s.size > 0 {
 				s.size = s.size - 1
 			}
-			fmt.Fprintln(DefaultWriter, time.Now(), ":deleted cron func:", s.tasks[i].GetFunInfo())
-			fmt.Fprintln(DefaultWriter, time.Now(), ":deleted cron, uuid:", uuid, "current num:", s.size, "slice:", len(s.tasks))
 			break
 		}
 	}
