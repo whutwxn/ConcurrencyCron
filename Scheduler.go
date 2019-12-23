@@ -161,10 +161,10 @@ func (s *scheduler) startRun() {
 func (s *scheduler) ListTasks() interface{} {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	var task []interface{}
+	//var task []interface{}
 	for i := 0; i < s.size; i++ {
-		task = append(task, s.tasks[i].GetFunInfo())
+		//task = append(task, s.tasks[i])
 		fmt.Fprintln(DefaultWriter, time.Now(), "current task:", s.tasks[i].GetFunInfo())
 	}
-	return task
+	return s.tasks
 }
